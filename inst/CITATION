@@ -1,0 +1,24 @@
+bibentry(bibtype = "Article",
+  title        = "Dual feature reduction for the sparse-group lasso and its adaptive variant",
+  author       = c(person("Fabio", "Feser",
+   email = "ff120@ic.ac.uk",
+   comment = c(ORCID = "0009-0007-3088-9727")),
+   person("Marina", "Evangelou",
+   comment = c(ORCID = "0000-0003-0789-8944"))),
+  journal      = "arXiv",
+  year         = "2024",
+  doi          = "10.48550/arXiv.2405.17094",
+  url          = "https://arxiv.org/abs/2405.17094",
+  header       = "To cite the DFR method in publications use"
+)
+
+bibentry(bibtype = "Manual",
+  title        = "dfr",
+  author       = person("Fabio", "Feser",
+   email = "ff120@ic.ac.uk",
+   comment = c(ORCID = "0009-0007-3088-9727")),
+  year         = "2024",
+  url          = "https://CRAN.R-project.org/package=dfr",
+  header       = "To cite the dfr R package in publications use:"
+)
+
