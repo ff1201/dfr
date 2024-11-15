@@ -14,7 +14,7 @@
 #' @importFrom stats sd
 #' @importFrom stats uniroot
 #' @importFrom caret createFolds
-#' @importFrom faux rnorm_multi
+#' @importFrom MASS mvrnorm
 #' @importFrom Matrix as.matrix
 ## usethis namespace: end
 

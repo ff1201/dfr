@@ -8,11 +8,11 @@ Description: Implementation of the Dual Feature Reduction (DFR) approach for the
 Imports:
     sgs,
     caret,
+    MASS,
     methods,
     stats,
     grDevices,
     graphics,
-    faux,
     Matrix
 Suggests:
     SGL,

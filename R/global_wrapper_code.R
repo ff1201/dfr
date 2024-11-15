@@ -27,7 +27,10 @@ general_fit <- function(X, y, groups, path_fcn, type, lambda, path_length, alpha
   if (any(lambda<0)){
     stop("lambda can not be negative")
   }
-
+  if (alpha < 0 | alpha > 1){ 
+    stop("alpha must be in [0,1]")
+  }
+  
   # identify fit type
   if (any(lambda == "path") | length(lambda) > 1){
     fit_type = "path"

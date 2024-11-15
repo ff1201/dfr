@@ -131,7 +131,7 @@ test_that("SGS solution reduces to SGL under logistic regression under constant 
   skip_if_not_installed("sgs")
   n = 50
   p = 100
-  X = as.matrix(rnorm_multi(n=n,vars=p,mu=0,sd=1,r=0))
+  X = MASS::mvrnorm(n=n,mu=rep(0,p),Sigma=diag(1,p))
   y = 1/(1+exp(-(X %*%rnorm(p,mean=0,sd=sqrt(10)) + rnorm(n,mean=0,sd=4))))
   y = ifelse(y>0.5,1,0)
   groups = rep(1:20,each=5)
@@ -170,7 +170,7 @@ test_that("SGS solution reduces to SGL when using constant weights without scree
   skip_if_not_installed("sgs")
   n = 50
   p = 100
-  X = as.matrix(rnorm_multi(n=n,vars=p,mu=0,sd=1,r=0))
+  X = MASS::mvrnorm(n=n,mu=rep(0,p),Sigma=diag(1,p))
   y = 1/(1+exp(-(X %*%rnorm(p,mean=0,sd=sqrt(10)) + rnorm(n,mean=0,sd=4))))
   y = ifelse(y>0.5,1,0)
   groups = rep(1:20,each=5)
