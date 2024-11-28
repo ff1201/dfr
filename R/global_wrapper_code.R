@@ -30,7 +30,13 @@ general_fit <- function(X, y, groups, path_fcn, type, lambda, path_length, alpha
   if (alpha < 0 | alpha > 1){ 
     stop("alpha must be in [0,1]")
   }
-  
+  if (type == "logistic" & intercept == TRUE){
+    warning("logistic regression with intercept has a bug. See sgs GitHub page for more details")
+  }
+  if (!check_group_vector(groups)){ # check if group indexes ordered correctly
+    warning("group indices are not set from 1, contain gaps, or are not ordered, which can lead to a bug during fitting. See GitHub page for more details.")
+  } 
+
   # identify fit type
   if (any(lambda == "path") | length(lambda) > 1){
     fit_type = "path"
@@ -352,8 +358,8 @@ general_fit_cv = function(X, y, groups, path_fcn, type, lambda, path_length, nfo
   output_model$selected_grp = lambda_model$selected_grp[[best_lambda_id]]
   output_model$lambda = lambda_model$lambda[best_lambda_id]
   output_model$type = lambda_model$type
-  output_model$standardise = lambda_model$standardise
   output_model$intercept = lambda_model$intercept
+  output_model$standardise = lambda_model$standardise
   output_model$num_it = lambda_model$num_it[best_lambda_id]
   output_model$success = lambda_model$success[best_lambda_id]
   output_model$certificate = lambda_model$certificate[best_lambda_id]

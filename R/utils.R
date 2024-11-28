@@ -417,3 +417,11 @@ gamma_g <- function(current_beta, alpha, groupIDs, pen_var_org, pen_grp_org) {
   }
   return(gamma_vals)  
 }
+
+check_group_vector <- function(vec) {
+  # Check if the vector is sorted and has no gaps
+  is_sorted <- all(diff(vec) >= 0)
+  has_no_gaps <- all(diff(unique(vec)) == 1)
+  
+  return(is_sorted && has_no_gaps)
+}
