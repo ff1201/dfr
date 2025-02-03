@@ -110,7 +110,7 @@ where the log-likelihood is given by
 \deqn{
  \mathcal{L}(b; y, \mathbf{X}) = \sum_{i=1}^{n}\left\{y_i b^\intercal x_i - \log(1+\exp(b^\intercal x_i)) \right\}.
 }
-SGL can be seen to be a convex combination of the lasso and group lasso, balanced through \code{alpha}, such that it reduces to the lasso for \code{alpha = 0} and to the group lasso for \code{alpha = 1}.
+SGL can be seen to be a convex combination of the lasso and group lasso, balanced through \code{alpha}, such that it reduces to the lasso for \code{alpha = 1} and to the group lasso for \code{alpha = 0}.
 By applying both the lasso and group lasso norms, SGL shrinks inactive groups to zero, as well as inactive variables in active groups.
 DFR uses the dual norm (the \eqn{\epsilon}-norm) and the KKT conditions to discard features at \eqn{\lambda_k} that would have been inactive at \eqn{\lambda_{k+1}}.
 It applies two layers of screening, so that it first screens out any groups that satisfy
