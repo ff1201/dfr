@@ -6,3 +6,6 @@
 
 ## Submission 0.1.3
 * Fixed typo
+
+## Submission 0.1.4
+* Added a CV fit object to the model class to make prediction easier.
