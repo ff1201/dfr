@@ -1,3 +1,22 @@
+###############################################################################
+#
+#    dfr: Dual Feature Reduction for the Sparse Group Lasso and Adaptive Sparse Group Lasso
+#    Copyright (C) 2024 Fabio Feser
+#
+#    This program is free software: you can redistribute it and/or modify
+#    it under the terms of the GNU General Public License as published by
+#    the Free Software Foundation, either version 3 of the License, or
+#    (at your option) any later version.
+#
+#    This program is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#    GNU General Public License for more details.
+#
+#    You should have received a copy of the GNU General Public License
+#    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+###############################################################################
 general_fit <- function(X, y, groups, path_fcn, type, lambda, path_length, alpha, backtracking, max_iter, max_iter_backtracking, tol, min_frac, standardise, intercept, v_weights, w_weights, screen, verbose, gamma_1, gamma_2, model){
  
   # -------------------------------------------------------------
@@ -30,12 +49,15 @@ general_fit <- function(X, y, groups, path_fcn, type, lambda, path_length, alpha
   if (alpha < 0 | alpha > 1){ 
     stop("alpha must be in [0,1]")
   }
-  if (type == "logistic" & intercept == TRUE){
-    warning("logistic regression with intercept has a bug. See sgs GitHub page for more details")
+  if (alpha == 0 | alpha == 1){ 
+    warning("this package is not optimised for lasso and group lasso models")
   }
-  if (!check_group_vector(groups)){ # check if group indexes ordered correctly
-    warning("group indices are not set from 1, contain gaps, or are not ordered, which can lead to a bug during fitting. See GitHub page for more details.")
-  } 
+  if (alpha == 0 & screen){ 
+    warning("this package contains a bug when using group lasso screening. See dfr GitHub page for more details")
+  }
+  if (type == "logistic" & intercept == TRUE){
+    warning("logistic regression with intercept has a bug. See dfr GitHub page for more details")
+  }
 
   # identify fit type
   if (any(lambda == "path") | length(lambda) > 1){
@@ -160,6 +182,7 @@ general_fit <- function(X, y, groups, path_fcn, type, lambda, path_length, alpha
     screen_out = do.call(screen_strong, c(list(X, y, groups, groupIDs, type, lambda_path*scale_pen, alpha, pen_var_org, pen_grp_org, 
                                                X_scale, num_vars, wt, path_length), fitting_options))
     if (fit_type == "single"){ # basic rule
+      screen_out$active_set_var = screen_out$active_set_var[[-1]]
       screen_out$screen_set_var = screen_out$screen_set_var[[-1]]
       screen_out$screen_set_grp = screen_out$screen_set_grp[[-1]]
       screen_out$kkt_violations_var = screen_out$kkt_violations_var[[-1]]
@@ -178,9 +201,9 @@ general_fit <- function(X, y, groups, path_fcn, type, lambda, path_length, alpha
     # prepare output
     out = c()
     out$beta = screen_out$beta
-    out$group_effects = screen_out$group_effects
+    out$group_effects = matrix(0, nrow = num_groups, ncol=path_length) 
     out$selected_var = screen_out$active_set_var
-    out$selected_grp = screen_out$active_set_grp
+    out$selected_grp = list()
     if (intercept){
       out$beta = apply(out$beta,2,function(x) c(y_mean - sum(X_center*x),x))
     } 
@@ -213,18 +236,34 @@ general_fit <- function(X, y, groups, path_fcn, type, lambda, path_length, alpha
   # -------------------------------------------------------------
   # prepare output
   # ------------------------------------------------------------- 
-  if (model == "asgl"){
-    out$v_weights = pen_var_org
-    out$w_weights = pen_grp_org
-  }
   out$screen = screen
   out$type = type
   out$standardise = standardise
   out$intercept = intercept 
   out$lambda = lambda_path
-  out$beta = as(out$beta,"CsparseMatrix")
+  if (fit_type == "single"){
+    out$z = as.matrix(out$z)
+    if (intercept){
+      out$group_effects = group_l2_vals(out$beta[-1], groups)
+    } else {
+      out$group_effects = group_l2_vals(out$beta, groups)
+    }
+    out$selected_grp = which(out$group_effects!=0)
+  } else {
+    if (intercept){
+      out$group_effects = apply(out$beta[-1,], 2, function(x) group_l2_vals(x, groups))
+    } else {
+      out$group_effects = apply(out$beta,2, function(x) group_l2_vals(x, groups))
+    }
+    out$selected_grp = apply(out$group_effects, 2, function(x) which(x!=0))
+  }
   out$group_effects = as(out$group_effects,"CsparseMatrix")
+  out$beta = as(out$beta,"CsparseMatrix")
   rownames(out$group_effects) = paste0("G", 1:num_groups)
+  if (model == "asgl"){
+    out$v_weights = pen_var_org
+    out$w_weights = pen_grp_org
+  }
   class(out) <- "sgl"
   return(out)
 }
@@ -356,21 +395,12 @@ general_fit_cv = function(X, y, groups, path_fcn, type, lambda, path_length, nfo
   output_model$group_effects = lambda_model$group_effects[,best_lambda_id]
   output_model$selected_var = lambda_model$selected_var[[best_lambda_id]]
   output_model$selected_grp = lambda_model$selected_grp[[best_lambda_id]]
-  output_model$lambda = lambda_model$lambda[best_lambda_id]
-  output_model$type = lambda_model$type
-  output_model$intercept = lambda_model$intercept
-  output_model$standardise = lambda_model$standardise
   output_model$num_it = lambda_model$num_it[best_lambda_id]
   output_model$success = lambda_model$success[best_lambda_id]
   output_model$certificate = lambda_model$certificate[best_lambda_id]
   output_model$x = lambda_model$x[,best_lambda_id]
   output_model$z = lambda_model$z[,best_lambda_id]
   output_model$u = lambda_model$u[,best_lambda_id]
-  output_model$screen = lambda_model$screen
-  if (model == "asgl"){
-    output_model$v_weights = pen_var_org
-    output_model$w_weights = pen_grp_org
-  }
   if (lambda_model$screen){
     output_model$screen_set_var = lambda_model$screen_set_var[[best_lambda_id]]
     output_model$screen_set_grp = lambda_model$screen_set_grp[[best_lambda_id]]
@@ -386,7 +416,16 @@ general_fit_cv = function(X, y, groups, path_fcn, type, lambda, path_length, nfo
     output_model$kkt_violations_var = lambda_model$kkt_violations_var[[1]]
     output_model$kkt_violations_grp = lambda_model$kkt_violations_grp[[1]] 
   }
-
+  output_model$screen = lambda_model$screen
+  output_model$type = lambda_model$type
+  output_model$intercept = lambda_model$intercept
+  output_model$standardise = lambda_model$standardise
+  output_model$lambda = lambda_model$lambda[best_lambda_id]  
+  if (model == "asgl"){
+    output_model$v_weights = pen_var_org
+    output_model$w_weights = pen_grp_org
+  }
+  
   out = c()
   out$all_models = lambda_model
   out$fit = output_model

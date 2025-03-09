@@ -86,7 +86,7 @@
 #' \item{beta}{The fitted values from the regression. Taken to be the more stable fit between \code{x} and \code{z}, which is usually the former. A filter is applied to remove very small values, where ATOS has not been able to shrink exactly to zero. Check this against \code{x} and \code{z}.}
 #' \item{group_effects}{The group values from the regression. Taken by applying the \eqn{\ell_2} norm within each group on \code{beta}.}
 #' \item{selected_var}{A list containing the indicies of the active/selected variables for each \code{"lambda"} value. Index 1 corresponds to the first column in X.}
-#' \item{selected_grp}{A list containing the indicies of the active/selected groups for each \code{"lambda"} value. Index 1 corresponds to the first group in the \code{groups} vector.}
+#' \item{selected_grp}{A list containing the indicies of the active/selected groups for each \code{"lambda"} value. Index 1 corresponds to the first group in the \code{groups} vector. You can see the group order by running \code{unique(groups)}.}
 #' \item{num_it}{Number of iterations performed. If convergence is not reached, this will be \code{max_iter}.}
 #' \item{success}{Logical flag indicating whether ATOS converged, according to \code{tol}.}
 #' \item{certificate}{Final value of convergence criteria.} 
@@ -118,13 +118,36 @@
 #' model = dfr_adap_sgl(X = data$X, y = data$y, groups = groups, type="linear", path_length = 5, 
 #' alpha=0.95, standardise = "l2", intercept = TRUE, verbose=FALSE)
 #' @references Feser, F., Evangelou, M. (2024). \emph{Dual feature reduction for the sparse-group lasso and its adaptive variant}, \url{https://arxiv.org/abs/2405.17094}
-#' @references Mendez-Civieta, A., Carmen Aguilera-Morillo, M., Lillo, R. (2020). \emph{Adaptive sparse group LASSO in quantile regression}, \url{https://link.springer.com/article/10.1007/s11634-020-00413-8}
+#' @references Mendez-Civieta, A., Carmen Aguilera-Morillo, M., Lillo, R. (2020). \emph{Adaptive sparse group LASSO in quantile regression}, \doi{10.1007/s11634-020-00413-8}
 #' @references Pedregosa, F., Gidel, G. (2018). \emph{Adaptive Three Operator Splitting}, \url{https://proceedings.mlr.press/v80/pedregosa18a.html}
-#' @references Poignard, B. (2020). \emph{Asymptotic theory of the adaptive Sparse Group Lasso}, \url{https://link.springer.com/article/10.1007/s10463-018-0692-7}
+#' @references Poignard, B. (2020). \emph{Asymptotic theory of the adaptive Sparse Group Lasso}, \doi{10.1007/s10463-018-0692-7}
 #' @export
 
 dfr_adap_sgl <- function(X, y, groups, type="linear", lambda="path", alpha=0.95, gamma_1 = 0.1, gamma_2 = 0.1, max_iter=5000, backtracking=0.7, max_iter_backtracking=100, tol=1e-5, standardise="l2", intercept=TRUE, path_length=20, min_frac=0.05, screen=TRUE, verbose=FALSE, v_weights=NULL, w_weights=NULL){
-  out = general_fit(X, y, groups, gen_path_adap_sgl, type, lambda, path_length, alpha, backtracking, max_iter, max_iter_backtracking, 
+  # check group ordering to ensure no gaps in group numbers and ordered from 1 to m
+  if (check_group_vector(groups)){
+    reorder_id = FALSE
+    ordered_grp_ids = groups
+  } else {
+    reorder_id = TRUE
+    grp_new = reorder_group(groups)
+    order_grp = order(grp_new,decreasing=FALSE)
+    ordered_grp_ids = match(groups[order_grp], sort(unique(groups[order_grp])))
+    X = X[,order_grp]
+    if (!is.null(v_weights) & !is.null(w_weights)) {
+      v_weights = v_weights[order_grp]
+      w_weights = w_weights[unique(groups)]
+    }
+  }
+
+  # Run main fitting function
+  out = general_fit(X, y, ordered_grp_ids, gen_path_adap_sgl, type, lambda, path_length, alpha, backtracking, max_iter, max_iter_backtracking, 
                     tol, min_frac, standardise, intercept, v_weights, w_weights, screen, verbose, gamma_1, gamma_2, model = "asgl")
+  
+  # put group ordering back to original
+  if (reorder_id){
+    out = reorder_output(out, intercept, order_grp, groups)
+  }
+  
   return(out)
 }

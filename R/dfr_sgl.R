@@ -79,7 +79,7 @@
 #' \item{beta}{The fitted values from the regression. Taken to be the more stable fit between \code{x} and \code{z}, which is usually the former. A filter is applied to remove very small values, where ATOS has not been able to shrink exactly to zero. Check this against \code{x} and \code{z}.}
 #' \item{group_effects}{The group values from the regression. Taken by applying the \eqn{\ell_2} norm within each group on \code{beta}.}
 #' \item{selected_var}{A list containing the indicies of the active/selected variables for each \code{"lambda"} value. Index 1 corresponds to the first column in X.}
-#' \item{selected_grp}{A list containing the indicies of the active/selected groups for each \code{"lambda"} value. Index 1 corresponds to the first group in the \code{groups} vector.}
+#' \item{selected_grp}{A list containing the indicies of the active/selected groups for each \code{"lambda"} value. Index 1 corresponds to the first group entry in the \code{groups} vector. You can see the group order by running \code{unique(groups)}.}
 #' \item{num_it}{Number of iterations performed. If convergence is not reached, this will be \code{max_iter}.}
 #' \item{success}{Logical flag indicating whether ATOS converged, according to \code{tol}.}
 #' \item{certificate}{Final value of convergence criteria.} 
@@ -110,11 +110,30 @@
 #' alpha=0.95, standardise = "l2", intercept = TRUE, verbose=FALSE)
 #' @references Feser, F., Evangelou, M. (2024). \emph{Dual feature reduction for the sparse-group lasso and its adaptive variant}, \url{https://arxiv.org/abs/2405.17094}
 #' @references Pedregosa, F., Gidel, G. (2018). \emph{Adaptive Three Operator Splitting}, \url{https://proceedings.mlr.press/v80/pedregosa18a.html}
-#' @references Simon, N., Friedman, J., Hastie, T., Tibshirani, R. (2013). \emph{A Sparse-Group Lasso}, \url{https://www.tandfonline.com/doi/abs/10.1080/10618600.2012.681250}
+#' @references Simon, N., Friedman, J., Hastie, T., Tibshirani, R. (2013). \emph{A Sparse-Group Lasso}, \doi{10.1080/10618600.2012.681250}
 #' @export
 
 dfr_sgl <- function(X, y, groups, type="linear", lambda="path", alpha=0.95, max_iter=5000, backtracking=0.7, max_iter_backtracking=100, tol=1e-5, standardise="l2", intercept=TRUE, path_length=20, min_frac=0.05, screen=TRUE, verbose=FALSE){
-  out = general_fit(X, y, groups, gen_path_sgl, type, lambda, path_length, alpha, backtracking, max_iter, max_iter_backtracking, 
+  # check group ordering to ensure no gaps in group numbers and ordered from 1 to m
+  if (check_group_vector(groups)){
+    reorder_id = FALSE
+    ordered_grp_ids = groups
+  } else {
+    reorder_id = TRUE
+    grp_new = reorder_group(groups)
+    order_grp = order(grp_new,decreasing=FALSE)
+    ordered_grp_ids = match(groups[order_grp], sort(unique(groups[order_grp])))
+    X = X[,order_grp]
+  }
+
+  # Run main fitting function
+  out = general_fit(X, y, ordered_grp_ids, gen_path_sgl, type, lambda, path_length, alpha, backtracking, max_iter, max_iter_backtracking, 
                     tol, min_frac, standardise, intercept, NULL, NULL, screen, verbose, NULL, NULL, model = "sgl")
+  
+  # put group ordering back to original
+  if (reorder_id){
+    out = reorder_output(out, intercept, order_grp, groups)
+  }
+  
   return(out)
 }

@@ -1,7 +1,7 @@
 ###############################################################################
 #
-#    sglDev: Sparse-group SLOPE (Sparse-group Sorted L1 Penalized Estimation)
-#    Copyright (C) 2023 Fabio Feser
+#    dfr: Dual Feature Reduction for the Sparse Group Lasso and Adaptive Sparse Group Lasso
+#    Copyright (C) 2024 Fabio Feser
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU General Public License as published by

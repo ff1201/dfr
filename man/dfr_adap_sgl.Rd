@@ -83,7 +83,7 @@ A list containing:
 \item{beta}{The fitted values from the regression. Taken to be the more stable fit between \code{x} and \code{z}, which is usually the former. A filter is applied to remove very small values, where ATOS has not been able to shrink exactly to zero. Check this against \code{x} and \code{z}.}
 \item{group_effects}{The group values from the regression. Taken by applying the \eqn{\ell_2} norm within each group on \code{beta}.}
 \item{selected_var}{A list containing the indicies of the active/selected variables for each \code{"lambda"} value. Index 1 corresponds to the first column in X.}
-\item{selected_grp}{A list containing the indicies of the active/selected groups for each \code{"lambda"} value. Index 1 corresponds to the first group in the \code{groups} vector.}
+\item{selected_grp}{A list containing the indicies of the active/selected groups for each \code{"lambda"} value. Index 1 corresponds to the first group in the \code{groups} vector. You can see the group order by running \code{unique(groups)}.}
 \item{num_it}{Number of iterations performed. If convergence is not reached, this will be \code{max_iter}.}
 \item{success}{Logical flag indicating whether ATOS converged, according to \code{tol}.}
 \item{certificate}{Final value of convergence criteria.}
@@ -151,11 +151,11 @@ alpha=0.95, standardise = "l2", intercept = TRUE, verbose=FALSE)
 \references{
 Feser, F., Evangelou, M. (2024). \emph{Dual feature reduction for the sparse-group lasso and its adaptive variant}, \url{https://arxiv.org/abs/2405.17094}
 
-Mendez-Civieta, A., Carmen Aguilera-Morillo, M., Lillo, R. (2020). \emph{Adaptive sparse group LASSO in quantile regression}, \url{https://link.springer.com/article/10.1007/s11634-020-00413-8}
+Mendez-Civieta, A., Carmen Aguilera-Morillo, M., Lillo, R. (2020). \emph{Adaptive sparse group LASSO in quantile regression}, \doi{10.1007/s11634-020-00413-8}
 
 Pedregosa, F., Gidel, G. (2018). \emph{Adaptive Three Operator Splitting}, \url{https://proceedings.mlr.press/v80/pedregosa18a.html}
 
-Poignard, B. (2020). \emph{Asymptotic theory of the adaptive Sparse Group Lasso}, \url{https://link.springer.com/article/10.1007/s10463-018-0692-7}
+Poignard, B. (2020). \emph{Asymptotic theory of the adaptive Sparse Group Lasso}, \doi{10.1007/s10463-018-0692-7}
 }
 \seealso{
 Other SGL-methods: 

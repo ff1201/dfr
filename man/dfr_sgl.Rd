@@ -71,7 +71,7 @@ A list containing:
 \item{beta}{The fitted values from the regression. Taken to be the more stable fit between \code{x} and \code{z}, which is usually the former. A filter is applied to remove very small values, where ATOS has not been able to shrink exactly to zero. Check this against \code{x} and \code{z}.}
 \item{group_effects}{The group values from the regression. Taken by applying the \eqn{\ell_2} norm within each group on \code{beta}.}
 \item{selected_var}{A list containing the indicies of the active/selected variables for each \code{"lambda"} value. Index 1 corresponds to the first column in X.}
-\item{selected_grp}{A list containing the indicies of the active/selected groups for each \code{"lambda"} value. Index 1 corresponds to the first group in the \code{groups} vector.}
+\item{selected_grp}{A list containing the indicies of the active/selected groups for each \code{"lambda"} value. Index 1 corresponds to the first group entry in the \code{groups} vector. You can see the group order by running \code{unique(groups)}.}
 \item{num_it}{Number of iterations performed. If convergence is not reached, this will be \code{max_iter}.}
 \item{success}{Logical flag indicating whether ATOS converged, according to \code{tol}.}
 \item{certificate}{Final value of convergence criteria.}
@@ -137,7 +137,7 @@ Feser, F., Evangelou, M. (2024). \emph{Dual feature reduction for the sparse-gro
 
 Pedregosa, F., Gidel, G. (2018). \emph{Adaptive Three Operator Splitting}, \url{https://proceedings.mlr.press/v80/pedregosa18a.html}
 
-Simon, N., Friedman, J., Hastie, T., Tibshirani, R. (2013). \emph{A Sparse-Group Lasso}, \url{https://www.tandfonline.com/doi/abs/10.1080/10618600.2012.681250}
+Simon, N., Friedman, J., Hastie, T., Tibshirani, R. (2013). \emph{A Sparse-Group Lasso}, \doi{10.1080/10618600.2012.681250}
 }
 \seealso{
 Other SGL-methods: 

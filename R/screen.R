@@ -1,7 +1,7 @@
 ###############################################################################
 #
-#    sglDev: Sparse-group SLOPE (Sparse-group Sorted L1 Penalized Estimation)
-#    Copyright (C) 2023 Fabio Feser
+#    dfr: Dual Feature Reduction for the Sparse Group Lasso and Adaptive Sparse Group Lasso
+#    Copyright (C) 2024 Fabio Feser
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU General Public License as published by
@@ -40,7 +40,6 @@ screen_strong <- function(X, y, groups, groupIDs, type, lambda_path, alpha, pen_
   out$epsilon_set_grp = list()
   out$epsilon_set_grp[[1]] = "no screening performed"
   out$active_set_var = list()
-  out$active_set_grp = list()
   out$num_it = rep(0,path_length)
   out$success = rep(0,path_length)
   out$certificate = rep(0,path_length)
@@ -57,12 +56,10 @@ screen_strong <- function(X, y, groups, groupIDs, type, lambda_path, alpha, pen_
   warm_x0 = rep(0,num_vars)
   warm_u = rep(0,num_vars)
   out$beta = matrix(0,nrow=num_vars,ncol=path_length)
-  out$group_effects = matrix(0,nrow=length(tbl_grps),ncol=path_length)
   current_model = do.call(fit_one, c(list(X, y, groups, groupIDs, type, lambda_path[1], alpha=alpha, FALSE, pen_var_org, pen_grp_org, x0 = warm_x0, u = warm_u, X_scale = X_scale, X_center=rep(0,num_vars),
   y_mean=rep(0,num_obs), wt=wt, wt_per_grp=tbl_grps_sqrt), screen_fitting_options))
   out$beta[,1] = as.vector(current_model$beta)
   current_beta = out$beta[,1]*X_scale
-  out$active_set_grp[[1]] = current_model$selected_grp
   out$active_set_var[[1]] = which(current_beta!=0)
   if (any(abs(current_model$x) > machine_tol) & any(abs(current_model$u) > machine_tol)){
       warm_x0 = current_model$x
@@ -77,13 +74,12 @@ screen_strong <- function(X, y, groups, groupIDs, type, lambda_path, alpha, pen_
   for (lambda_id in 2:path_length){
     # calculate gradient
     active_set_var = out$active_set_var[[lambda_id-1]]
-    active_set_grp = out$active_set_grp[[lambda_id-1]] 
     grad_vec = mult_fcn(tX,f_grad(y, mult_fcn(X,current_beta), num_obs))
 
     # group screening
     screen_set_grp = sgl_grp_screen(grad_vec, current_beta, groupIDs, alpha, pen_var_org, pen_grp_org, lambda_path[lambda_id], lambda_path[lambda_id-1], tbl_grps_sqrt)
 
-    # variable screening - skip if gslope
+    # variable screening - skip if glasso
     if (length(screen_set_grp)>0){ 
       screen_set_var = sgl_var_screen(grad_vec, groupIDs, screen_set_grp, alpha, pen_var_org, lambda_path[lambda_id], lambda_path[lambda_id-1], active_set_var)
       epsilon_set_var = sort(union(active_set_var,screen_set_var)) # corresponds to capital epsilon
@@ -91,7 +87,7 @@ screen_strong <- function(X, y, groups, groupIDs, type, lambda_path, alpha, pen_
     } else {
       screen_set_var = screen_set_grp
       epsilon_set_var = active_set_var
-      epsilon_set_grp = active_set_grp
+      epsilon_set_grp = which_groups_active(current_beta, groups)
     }
 
     # initial fit
@@ -145,10 +141,8 @@ screen_strong <- function(X, y, groups, groupIDs, type, lambda_path, alpha, pen_
 
     # prepare output
     out$beta[fitting_var,lambda_id] = as.vector(current_model$beta)
-    out$group_effects[epsilon_set_grp,lambda_id] = current_model$group_effects
     out$epsilon_set_var[[lambda_id]] = epsilon_set_var
     out$epsilon_set_grp[[lambda_id]] = epsilon_set_grp
-    out$active_set_grp[[lambda_id]] = current_model$selected_grp
     out$active_set_var[[lambda_id]] = which(current_beta!=0)
     out$screen_set_grp[[lambda_id]] = sort(screen_set_grp)
     out$screen_set_var[[lambda_id]] = sort(screen_set_var)
