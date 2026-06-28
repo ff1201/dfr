@@ -12,3 +12,6 @@
 
 ## Submission 0.1.5
 * Fixed the grouping bug. There is now an internal reordering step if the group indexes have a gap or are not ordered.
+
+## Submission 0.1.6
+* Minor bug fixes.

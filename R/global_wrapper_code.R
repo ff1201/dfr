@@ -256,7 +256,12 @@ general_fit <- function(X, y, groups, path_fcn, type, lambda, path_length, alpha
       out$group_effects = apply(out$beta,2, function(x) group_l2_vals(x, groups))
     }
     out$selected_grp = apply(out$group_effects, 2, function(x) which(x!=0))
+    if (length(out$selected_grp) == 0){ # temp fix, would be easier to use out$selected_var but need to check group ordering
+      out$selected_grp = vector("list", path_length)
+      out$selected_grp = lapply(out$selected_grp, function(x) integer(0))
+    }
   }
+
   out$group_effects = as(out$group_effects,"CsparseMatrix")
   out$beta = as(out$beta,"CsparseMatrix")
   rownames(out$group_effects) = paste0("G", 1:num_groups)
